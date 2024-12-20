@@ -1,5 +1,6 @@
 const Indicado = require("../model/Indicado");
-const metodos = require('./metodos');
+const { category } = require('./put');
+const { allCategories, categories, animeById, lastId } = require('./get');
 const { filePath, XLSX, workbook } = require('./excel_db');
 
 function definirPontuacao(indicados)
@@ -19,7 +20,7 @@ function indicado(anime, categoriaNome, personagem, numero)
 {
     try 
     {
-        const categorias = metodos.get.allCategories()
+        const categorias = allCategories()
         let categoria = categorias.find(cat => cat.nome.toUpperCase() == categoriaNome.toUpperCase());
 
         let indicado;
@@ -38,7 +39,7 @@ function indicado(anime, categoriaNome, personagem, numero)
         }
 
         categoria.indicados.push(indicado);
-        metodos.put.category(categoria)
+        category(categoria)
     } 
     catch (error) 
     {
@@ -52,42 +53,42 @@ function anime(anime)
 {
     try 
     {
-        let animes = metodos.get.allAnimes();
-        anime.id = animes.length;
+        anime.id = lastId() + 1;
     
         const planilha = workbook.Sheets[`Animes`];
         const linha = anime.id + 2;
         
+        console.log(anime)
         let celula = "A" + linha;
-        planilha[celula].v = anime.id;
+        planilha[celula] = { v: anime.id, t: "n" };
     
         celula = "B" + linha;
-        planilha[celula].v = anime.nome;
+        planilha[celula] = { v: anime.nome, t: "s" };
     
         celula = "C" + linha;
-        planilha[celula].v = anime.imagemURL;
+        planilha[celula] = { v: anime.imagemURL, t: "s" };
     
         celula = "D" + linha;
-        planilha[celula].v = anime.temporadaAnime;
+        planilha[celula] = { v: anime.temporadaAnime, t: "n" };
     
         celula = "E" + linha;
-        planilha[celula].v = anime.temporadaLancamento;
+        planilha[celula] = { v: anime.temporadaLancamento.join(' - '), t: "s" };
     
         celula = "F" + linha;
-        planilha[celula].v = anime.estudio.join(' - ');
+        planilha[celula] = { v: anime.estudio.join(' - '), t: "s" };
     
         celula = "G" + linha;
-        planilha[celula].v = anime.generos.join(' - ');
+        planilha[celula] = { v: anime.generos.join(' - '), t: "s" };
     
         celula = "H" + linha;
-        planilha[celula].v = anime.fonte;
+        planilha[celula] = { v: anime.fonte, t: "s" };
     
         celula = "I" + linha;
-        planilha[celula].v = 0;
+        planilha[celula] = { v: 0, t: "n" };
     
         XLSX.writeFile(workbook, filePath)
     
-        const categoriasSubjetivas = metodos.get.categories("Subjetivas");
+        const categoriasSubjetivas = categories("Subjetivas");
     
         categoriasSubjetivas.forEach(categoria => {
             if(categoria.nome == "Melhor Ideia-Proposta" && anime.temporadaAnime == 1)
@@ -108,19 +109,23 @@ function anime(anime)
             }
         })
     
-        anime.generos.forEach(genero => metodos.post.indicado(anime, `MELHOR ${genero}`))
+        anime.generos.forEach(genero => indicado(anime, `MELHOR ${genero}`))
     
-        const categoriasTecnicas = metodos.get.categories("Tecnicas");
+        const categoriasTecnicas = categories("Tecnicas");
     
         categoriasTecnicas.forEach(categoria => {
             if(categoria.nome != "Melhor Design de Personagens" || anime.temporadaAnime == 1)
             {
                 indicado(anime, categoria.nome)
             }
-        })  
+        })
+
+        const animeCriado = animeById(anime.id)
+        animeCriado ? console.log('sucesso') : (() => { throw new Error('Erro ao criar anime'); })()
     } 
-    catch (error) 
+    catch (error)
     {
+        console.error(error)
         return false;
     }
     
