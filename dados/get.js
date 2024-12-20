@@ -28,8 +28,9 @@ function allAnimes() {
     return animes
 }
 
-function anime(id){
-    return animes.length == 0 ? allAnimes().filter(anime => anime.id == id)[0] : animes.filter(anime => anime.id == id)[0];
+function lastId() {
+    const animes = allAnimes().sort((a, b) => a.id - b.id)
+    return animes[animes.length - 1].id
 }
 
 function categories(tipoCategoria)
@@ -48,14 +49,14 @@ function categories(tipoCategoria)
             {
                 if(dados[linha][coluna + 1])
                 {
-                    let animeIndicado = anime(dados[linha][coluna + 1]);
+                    let animeIndicado = animeById(dados[linha][coluna + 1]);
                     let indicado = new Indicado(animeIndicado, dados[linha][coluna + 2], null, null);
 
                     if(tipoCategoria == "Personagens")
                     {
                         if(dado == "Melhor Casal")
                         {
-                            animeIndicado = anime(dados[linha][coluna + 4]);
+                            animeIndicado = animeById(dados[linha][coluna + 4]);
 
                             indicado.pontos = dados[linha][coluna + 5];
                             indicado.casal = dados[linha][coluna + 1];
@@ -64,7 +65,7 @@ function categories(tipoCategoria)
                         }
                         else
                         {
-                            animeIndicado = anime(dados[linha][coluna + 3]);
+                            animeIndicado = animeById(dados[linha][coluna + 3]);
                             
                             indicado.pontos = dados[linha][coluna + 4];
                             indicado.personagem = dados[linha][coluna + 1];
@@ -129,5 +130,6 @@ module.exports = {
     animeByCategory,
     animeById,
     categories,
-    category
+    category,
+    lastId
 };
