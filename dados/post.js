@@ -1,7 +1,7 @@
 const Indicado = require("../model/Indicado");
-const { category } = require('./put');
-const { allCategories, categories, animeById, lastId } = require('./get');
+const { categories, animeById, lastId, category } = require('./get');
 const { filePath, XLSX, workbook } = require('./excel_db');
+const { definirCelula } = require('./utils/funcoes')
 
 function definirPontuacao(indicados)
 {
@@ -9,40 +9,81 @@ function definirPontuacao(indicados)
 
     if(indicados.length > 0)
     {
-        menorPontuacao = categoria.indicados[categoria.indicados.length - 1].pontos;
+        menorPontuacao = indicados[indicados.length - 1].pontos;
         pontosIndicado = menorPontuacao > 0 ? menorPontuacao - 1 : 0;
     }
 
     return pontosIndicado
 }
 
-function indicado(anime, categoriaNome, personagem, numero)
+function atualizarNumeroLinhas(sheet, linha) {
+    const range = XLSX.utils.decode_range(sheet['!ref'] || 'A1');
+    range.e.r = Math.max(range.e.r, linha);
+    sheet['!ref'] = XLSX.utils.encode_range(range);
+}
+
+function capitalize(text) {
+    return text
+        .toLowerCase()
+        .split(' ')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
+}
+
+function indicado(anime, categoria, personagem, numero)
 {
     try 
     {
-        const categorias = allCategories()
-        let categoria = categorias.find(cat => cat.nome.toUpperCase() == categoriaNome.toUpperCase());
+        const planilha = workbook.Sheets[`Categorias ${categoria.tipo}`];
+        const dados = XLSX.utils.sheet_to_json(planilha, { header: 1 });
+        const linha = categoria.indicados.length + 2;
 
-        let indicado;
-        
-        if(categoria.tipo == "Personagens")
-        {
-            indicado = new Indicado(anime, definirPontuacao(categoria.indicados), null, personagem);
-        }
-        else if(categoriaNome == "Melhor Abertura" || categoriaNome == "Melhor Encerramento")
-        {
-            indicado = new Indicado(anime, definirPontuacao(categoria.indicados), numero);
-        }
-        else
-        {
-            indicado = new Indicado(anime, definirPontuacao(categoria.indicados));
-        }
+        Array.from(dados[0]).forEach((dado, coluna) => {
+            if(dado && dado == categoria.nome)
+            {
+                planilha[definirCelula(linha, coluna)] = { v: categoria.indicados.length + 1, t: "n" }
 
-        categoria.indicados.push(indicado);
-        category(categoria)
+                if(categoria.tipo == "Personagens")
+                {
+                    if(dado == "Melhor Casal")
+                    {
+                        planilha[definirCelula(linha, coluna + 4)] = { v: anime.id, t: "n" };
+                        planilha[definirCelula(linha, coluna + 5)] = { v: definirPontuacao(categoria.indicados), t: "n" };
+                        planilha[definirCelula(linha, coluna + 1)] = { v: personagem.casal };
+                        planilha[definirCelula(linha, coluna + 2)] = { v: personagem.imagemA };
+                        planilha[definirCelula(linha, coluna + 3)] = { v: personagem.imagemB };
+                    }
+                    else
+                    {
+                        planilha[definirCelula(linha, coluna + 3)] = { v: anime.id, t: "n" };
+                        planilha[definirCelula(linha, coluna + 4)] = { v: definirPontuacao(categoria.indicados), t: "n" };
+                        planilha[definirCelula(linha, coluna + 1)] = { v: personagem.nome };
+                        planilha[definirCelula(linha, coluna + 2)] = { v: personagem.imagem }
+                    }
+                }
+                else
+                {
+                    planilha[definirCelula(linha, coluna + 1)] = { v: anime.id, t: "n" };
+                }
+                
+                if(categoria.tipo == "Subjetivas" && (dado == "Melhor Encerramento" || dado == "Melhor Abertura"))
+                {
+                    planilha[definirCelula(linha, coluna + 3)] = { v: definirPontuacao(categoria.indicados), t: "n" };
+                    planilha[definirCelula(linha, coluna + 2)] = { v: numero, t: "n" };
+                }
+                else if(categoria.tipo != "Personagens")
+                {
+                    planilha[definirCelula(linha, coluna + 2)] = { v: definirPontuacao(categoria.indicados), t: "n" };
+                }
+            }
+        })
+
+        atualizarNumeroLinhas(planilha, linha);
+        XLSX.writeFile(workbook, filePath);
     } 
     catch (error) 
     {
+        console.error(error)
         return false
     }
 
@@ -56,72 +97,53 @@ function anime(anime)
         anime.id = lastId() + 1;
     
         const planilha = workbook.Sheets[`Animes`];
-        const linha = anime.id + 2;
+        const linha = anime.id + 1;
         
-        console.log(anime)
-        let celula = "A" + linha;
-        planilha[celula] = { v: anime.id, t: "n" };
+        planilha["A" + linha] = { v: anime.id, t: "n" };
+        planilha["B" + linha] = { v: anime.nome, t: "s" };
+        planilha["C" + linha] = { v: anime.imagemURL, t: "s" };
+        planilha["D" + linha] = { v: anime.temporadaAnime, t: "n" };
+        planilha["E" + linha] = { v: anime.temporadaLancamento.join(' - '), t: "s" };
+        planilha["F" + linha] = { v: anime.estudio.join(' - '), t: "s" };
+        planilha["G" + linha] = { v: anime.generos.join(' - '), t: "s" };
+        planilha["H" + linha] = { v: anime.fonte, t: "s" };
+        planilha["I" + linha] = { v: 0, t: "n" };
+
+        atualizarNumeroLinhas(planilha, linha)
+        
+        XLSX.writeFile(workbook, filePath);
+
+        animeById(anime.id) ? console.log('sucesso') : (() => { throw new Error('Erro ao criar anime'); })()
     
-        celula = "B" + linha;
-        planilha[celula] = { v: anime.nome, t: "s" };
-    
-        celula = "C" + linha;
-        planilha[celula] = { v: anime.imagemURL, t: "s" };
-    
-        celula = "D" + linha;
-        planilha[celula] = { v: anime.temporadaAnime, t: "n" };
-    
-        celula = "E" + linha;
-        planilha[celula] = { v: anime.temporadaLancamento.join(' - '), t: "s" };
-    
-        celula = "F" + linha;
-        planilha[celula] = { v: anime.estudio.join(' - '), t: "s" };
-    
-        celula = "G" + linha;
-        planilha[celula] = { v: anime.generos.join(' - '), t: "s" };
-    
-        celula = "H" + linha;
-        planilha[celula] = { v: anime.fonte, t: "s" };
-    
-        celula = "I" + linha;
-        planilha[celula] = { v: 0, t: "n" };
-    
-        XLSX.writeFile(workbook, filePath)
-    
-        const categoriasSubjetivas = categories("Subjetivas");
-    
-        categoriasSubjetivas.forEach(categoria => {
+        categories("Subjetivas").forEach(categoria => {
             if(categoria.nome == "Melhor Ideia-Proposta" && anime.temporadaAnime == 1)
             {
-                indicado(anime, categoria.nome)
+                indicado(anime, categoria)
             }
             else if(categoria.nome == "Melhor Original" && anime.fonte == "ORIGINAL")
             {
-                indicado(anime, categoria.nome)
+                indicado(anime, categoria)
             }
             else if(categoria.nome == "Melhor Adaptação" && anime.fonte != "ORIGINAL")
             {
-                indicado(anime, categoria.nome)
+                indicado(anime, categoria)
             }
             else if(categoria.nome == "Melhor História-Roteiro")
             {
-                indicado(anime, categoria.nome)
+                indicado(anime, categoria)
             }
         })
     
-        anime.generos.forEach(genero => indicado(anime, `MELHOR ${genero}`))
+        anime.generos.forEach(genero => {
+            genero == "SLICE OF LIFE" ? indicado(anime, category("Melhor Slice of Life")) : indicado(anime, category(`Melhor ${capitalize(genero)}`))
+        })
     
-        const categoriasTecnicas = categories("Tecnicas");
-    
-        categoriasTecnicas.forEach(categoria => {
+        categories("Tecnicas").forEach(categoria => {
             if(categoria.nome != "Melhor Design de Personagens" || anime.temporadaAnime == 1)
             {
-                indicado(anime, categoria.nome)
+                indicado(anime, categoria)
             }
         })
-
-        const animeCriado = animeById(anime.id)
-        animeCriado ? console.log('sucesso') : (() => { throw new Error('Erro ao criar anime'); })()
     } 
     catch (error)
     {

@@ -41,7 +41,15 @@ router.get('/categoria/:nome', (req, res) => {
 
 router.post('/anime', (req, res) => {
     const animeAdicionado = dados.post.anime(req.body);
-    animeAdicionado ? res.status(201).send({mensagem: "Anime adicionado com sucesso!"}) : res.status(501).send({mensagem: "Erro na adição do anime!"})
+    if(animeAdicionado)
+    {
+        dados.put.atualizarAnimes();
+        res.status(201).send({mensagem: "Anime adicionado com sucesso!"})
+    }
+    else
+    {
+        res.status(501).send({mensagem: "Erro na adição do anime!"})
+    }
 })
 
 router.post('/indicado', (req, res) => {
