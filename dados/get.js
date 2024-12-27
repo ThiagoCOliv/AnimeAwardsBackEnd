@@ -116,7 +116,7 @@ function animeByCategory(categoria){
 }
 
 function animeById(id){
-    return animes.length > 0 ? animes.filter(anime => anime.id == id)[0] : allAnimes().filter(anime => anime.id == id)[0];
+    return allAnimes().filter(anime => anime.id == id)[0];
 }
 
 function category(categoriaNome){
