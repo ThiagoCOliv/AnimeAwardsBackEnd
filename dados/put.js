@@ -1,6 +1,7 @@
 const { filePath, XLSX, workbook } = require('./excel_db');
 const metodos = require('./metodos');
-const get = require('./get')
+const get = require('./get');
+const { definirCelula } = require('./utils/funcoes')
 
 function category(categoria)
 {
@@ -160,19 +161,6 @@ function atualizarAnimes()
     XLSX.writeFile(workbook, filePath)
 
     return true;
-}
-
-function definirCelula(linha, coluna)
-{
-    const alfabeto = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    let colunaLetras = '';
-    
-    while (coluna >= 0) {
-        colunaLetras = alfabeto[coluna % 26] + colunaLetras;
-        coluna = Math.floor(coluna / 26) - 1;
-    }
-    
-    return colunaLetras + (linha + 1);
 }
 
 module.exports = { category, anime, atualizarAnimes }
