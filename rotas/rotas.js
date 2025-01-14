@@ -5,7 +5,7 @@ const dados = require('../dados/metodos');
 dados.put.atualizarAnimes();
 
 router.get('/animes', (req, res) => {
-    const animes = dados.get.allAnimes();
+    const animes = req.query.genero ? dados.get.animeByCategory(req.query.genero) : dados.get.allAnimes();
     res.status(200).send(animes);
 })
 
@@ -16,21 +16,11 @@ router.get('/animes/top', (req, res) => {
 
 router.get('/animes/:id', (req, res) => {
     const anime = dados.get.animeById(req.params.id);
-    res.status(200).send(anime);
-})
-
-router.get('/animes/:categoria', (req, res) => {
-    const animes = dados.get.animeByCategory(req.params.categoria);
-    res.status(200).send(animes);
+    res.status(200).send({anime, vitorias: dados.get.checarVitorias(anime)});
 })
 
 router.get('/categorias', (req, res) => {
     const categorias = dados.get.allCategories()
-    res.status(200).send(categorias);
-})
-
-router.get('/categorias/:tipo', (req, res) => {
-    const categorias = dados.get.categories(req.params.tipo)
     res.status(200).send(categorias);
 })
 
