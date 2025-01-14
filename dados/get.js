@@ -74,22 +74,22 @@ function categories(tipoCategoria)
 
                         indicado.anime = animeIndicado;
                     }
-
+                    
                     if(tipoCategoria == "Subjetivas" && (dado == "Melhor Encerramento" || dado == "Melhor Abertura"))
                     {
                         indicado.pontos = dados[linha][coluna + 3];
                         indicado.numero = dados[linha][coluna + 2];
                     }
                     
-                    indicados.push(indicado)
+                    indicados.push(indicado);
                 }
             }
-            
+
             const categoria = new Categoria(dado, indicados, tipoCategoria)
             categoriasLista.push(categoria)
         }
     });
-
+    
     return categoriasLista;
 }
 
@@ -123,6 +123,24 @@ function category(categoriaNome){
     return categorias.length > 0 ? categorias.filter(categoria => categoria.nome == categoriaNome)[0] : allCategories().filter(categoria => categoria.nome == categoriaNome)[0];
 }
 
+function checarVitorias(anime){
+    categoriasVencidas = [];
+    animes = allAnimes();
+
+    animeOfTheYear = {
+        nome: "Anime do Ano",
+        indicados: animes,
+        tipo: "Geral"
+    }
+
+    categoriasVencidas = 
+        animes.some(anim => anim.pontos > anime.pontos) ? 
+        allCategories().filter(categoria => categoria.indicados[0].anime.id == anime.id) :
+        [animeOfTheYear, ...allCategories().filter(categoria => categoria.indicados[0].anime.id == anime.id)];
+
+    return categoriasVencidas
+}
+
 module.exports = {
     allAnimes,
     topAnimes,
@@ -131,5 +149,6 @@ module.exports = {
     animeById,
     categories,
     category,
-    lastId
+    lastId,
+    checarVitorias
 };
