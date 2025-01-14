@@ -35,7 +35,7 @@ function category(categoria)
                 }
                 else
                 {
-                    planilha[definirCelula(linha, coluna + 1)] = { v: categoria.indicados[linha - 2].anime.id };
+                    planilha[definirCelula(linha, coluna + 1)] = { t: 's', v: categoria.indicados[linha - 2].anime.id.toString(), h: categoria.indicados[linha - 2].anime.id.toString(), w: categoria.indicados[linha - 2].anime.id.toString() };
                 }
 
                 if(categoria.tipo == "Subjetivas" && (dado == "Melhor Encerramento" || dado == "Melhor Abertura"))
@@ -50,9 +50,9 @@ function category(categoria)
             }
         }
     });
-
+    
     XLSX.writeFile(workbook, filePath)
-
+    
     return atualizarAnimes();
 }
 
@@ -150,7 +150,7 @@ function atualizarAnimes()
                 }
             })
         })
-        //console.log(indicacoesAnime)
+        
         pontuacaoAnime = indicacoesAnime.reduce((total, atual) => total + atual.pontos, 0)
 
         const planilha = workbook.Sheets[`Animes`];
