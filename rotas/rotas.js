@@ -6,17 +6,19 @@ dados.put.atualizarAnimes();
 
 router.get('/animes', (req, res) => {
     const animes = req.query.genero ? dados.get.animeByCategory(req.query.genero) : dados.get.allAnimes();
-    res.status(200).send(animes);
+    animes.length > 0 ? res.status(200).send(animes) : res.status(404).send({ mensagem: "Animes não encontrados" });
 })
+
+router.get('/generos', (req, res) => res.status(200).send(dados.get.generos()))
 
 router.get('/animes/top', (req, res) => {
     const animes = dados.get.topAnimes();
-    res.status(200).send(animes);
+    animes.length > 0 ? res.status(200).send(animes) : res.status(404).send({ mensagem: "Animes não encontrados" });
 })
 
 router.get('/animes/:id', (req, res) => {
     const anime = dados.get.animeById(req.params.id);
-    res.status(200).send({anime, vitorias: dados.get.checarVitorias(anime)});
+    anime ? res.status(200).send({anime, vitorias: dados.get.checarVitorias(anime)}) : res.status(404).send({ mensagem: "Anime não encontrado!" });
 })
 
 router.get('/categorias', (req, res) => {
@@ -26,7 +28,7 @@ router.get('/categorias', (req, res) => {
 
 router.get('/categoria/:nome', (req, res) => {
     const categoria = dados.get.category(req.params.nome);
-    res.status(200).send(categoria);
+    categoria ? res.status(200).send(categoria) : res.status(404).send({ mensagem: "Categoria não encontrada" });
 })
 
 router.post('/anime', (req, res) => {
@@ -34,11 +36,11 @@ router.post('/anime', (req, res) => {
     if(animeAdicionado)
     {
         dados.put.atualizarAnimes();
-        res.status(201).send({mensagem: "Anime adicionado com sucesso!"})
+        res.status(201).send({ mensagem: "Anime adicionado com sucesso!", dados: animeAdicionado })
     }
     else
     {
-        res.status(501).send({mensagem: "Erro na adição do anime!"})
+        res.status(501).send({ mensagem: "Erro na adição do anime!" })
     }
 })
 

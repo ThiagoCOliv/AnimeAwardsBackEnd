@@ -30,7 +30,7 @@ function allAnimes() {
 
 function lastId() {
     const animes = allAnimes().sort((a, b) => a.id - b.id)
-    return animes[animes.length - 1].id
+    return animes.length > 0 ? animes[animes.length - 1].id : 0;
 }
 
 function categories(tipoCategoria)
@@ -40,7 +40,7 @@ function categories(tipoCategoria)
 
     let categoriasLista = []
 
-    Array.from(dados[0]).forEach((dado, coluna) => {
+    if(dados.length > 0) Array.from(dados[0]).forEach((dado, coluna) => {
         let indicados = [];
         
         if(dado)
@@ -94,12 +94,19 @@ function categories(tipoCategoria)
 }
 
 function allCategories(){
+    categorias = [];
+    
     const subjetivas = categories("Subjetivas");
+    if(subjetivas.length > 0) categorias.push(...subjetivas);
+    
     const generos = categories("Generos");
+    if(generos.length > 0) categorias.push(...generos);
+    
     const tecnicas = categories("Tecnicas");
+    if(tecnicas.length > 0) categorias.push(...tecnicas);
+    
     const personagens = categories("Personagens");
-
-    categorias = [...subjetivas, ...generos, ...tecnicas, ...personagens]
+    if(personagens.length > 0) categorias.push(...personagens);
 
     return categorias;
 }
@@ -112,7 +119,7 @@ function topAnimes(){
 }
 
 function animeByCategory(categoria){
-    return animes.length > 0 ? animes.filter(anime => anime.generos.includes(categoria.toUpperCase())) : allAnimes().filter(anime => anime.generos.includes(categoria.toUpperCase()));
+    return allAnimes().filter(anime => anime.generos.includes(categoria));
 }
 
 function animeById(id){
@@ -120,7 +127,7 @@ function animeById(id){
 }
 
 function category(categoriaNome){
-    return categorias.length > 0 ? categorias.filter(categoria => categoria.nome == categoriaNome)[0] : allCategories().filter(categoria => categoria.nome == categoriaNome)[0];
+    return allCategories().filter(categoria => categoria.nome == categoriaNome)[0];
 }
 
 function checarVitorias(anime){
@@ -135,10 +142,20 @@ function checarVitorias(anime){
 
     categoriasVencidas = 
         animes.some(anim => anim.pontos > anime.pontos) ? 
-        allCategories().filter(categoria => categoria.indicados[0].anime.id == anime.id) :
-        [animeOfTheYear, ...allCategories().filter(categoria => categoria.indicados[0].anime.id == anime.id)];
+        allCategories().filter(categoria => {
+            if(categoria.indicados.length > 0 && categoria.indicados[0].anime.id == anime.id) return categoria
+        }) :
+        [animeOfTheYear, ...allCategories().filter(categoria => {
+            if(categoria.indicados.length > 0 && categoria.indicados[0].anime.id == anime.id) return categoria
+        })];
 
     return categoriasVencidas
+}
+
+function generos()
+{
+    const planilha = workbook.Sheets[`Categorias Generos`];
+    return XLSX.utils.sheet_to_json(planilha, { header: 1 });
 }
 
 module.exports = {
@@ -150,5 +167,6 @@ module.exports = {
     categories,
     category,
     lastId,
-    checarVitorias
+    checarVitorias,
+    generos
 };

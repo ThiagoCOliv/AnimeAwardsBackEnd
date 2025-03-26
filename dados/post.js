@@ -22,6 +22,12 @@ function atualizarNumeroLinhas(sheet, linha) {
     sheet['!ref'] = XLSX.utils.encode_range(range);
 }
 
+function atualizarNumeroColunas(sheet, coluna) {
+    const range = XLSX.utils.decode_range(sheet['!ref'] || 'A1');
+    range.e.c = Math.max(range.e.c, coluna);
+    sheet['!ref'] = XLSX.utils.encode_range(range);
+}
+
 function capitalize(text) {
     return text
         .toLowerCase()
@@ -113,8 +119,6 @@ function anime(anime)
         
         XLSX.writeFile(workbook, filePath);
 
-        animeById(anime.id) ? console.log('sucesso') : (() => { throw new Error('Erro ao criar anime'); })()
-    
         categories("Subjetivas").forEach(categoria => {
             if(categoria.nome == "Melhor Ideia-Proposta" && anime.temporadaAnime == 1)
             {
@@ -133,17 +137,19 @@ function anime(anime)
                 indicado(anime, categoria)
             }
         })
-    
+        
         anime.generos.forEach(genero => {
-            genero == "SLICE OF LIFE" ? indicado(anime, category("Melhor Slice of Life")) : indicado(anime, category(`Melhor ${capitalize(genero)}`))
+            const categoriaNome = `Melhor ${capitalize(genero)}`;
+            if(!category(categoriaNome) && !criarCategoriaGenero(categoriaNome)) throw new Error("Categoria não pode ser criada.")
+
+            indicado(anime, category(categoriaNome))
         })
-    
+        
         categories("Tecnicas").forEach(categoria => {
-            if(categoria.nome != "Melhor Design de Personagens" || anime.temporadaAnime == 1)
-            {
-                indicado(anime, categoria)
-            }
+            if(categoria.nome != "Melhor Design de Personagens" || anime.temporadaAnime == 1) indicado(anime, categoria)
         })
+
+        animeById(anime.id) ? console.log('sucesso') : (() => { throw new Error('Erro ao criar anime'); })()
     } 
     catch (error)
     {
@@ -152,6 +158,42 @@ function anime(anime)
     }
     
     return true;
+}
+
+function criarCategoriaGenero(genero)
+{
+    try 
+    {
+        const planilha = workbook.Sheets[`Categorias Generos`];
+        const dados = XLSX.utils.sheet_to_json(planilha, { header: 1 });
+        const generos = categories(`Generos`).length;
+        atualizarNumeroLinhas(planilha, 2);
+        atualizarNumeroColunas(planilha, (generos * 4) + 3);
+
+        if(generos == 0)
+        {
+            planilha["A1"] = { v: genero, t: "s" };
+            planilha["A2"] = { v: "POS", t: "s" };
+            planilha["B2"] = { v: "ANIME_ID", t: "s" };
+            planilha["C2"] = { v: "PTS", t: "s" };
+        }
+        else
+        {
+            const colunaInicial = generos * 4;
+            planilha[definirCelula(0, colunaInicial)] = { v: genero, t: "s" };
+            planilha[definirCelula(1, colunaInicial)] = { v: "POS", t: "s" };
+            planilha[definirCelula(1, colunaInicial + 1)] = { v: "ANIME_ID", t: "s" };
+            planilha[definirCelula(1, colunaInicial + 2)] = { v: "PTS", t: "s" };
+        }
+        
+        XLSX.writeFile(workbook, filePath);
+        return true;
+    }
+    catch(error)
+    {
+        console.error(error)
+        return false;
+    }
 }
 
 module.exports = { indicado, anime }
