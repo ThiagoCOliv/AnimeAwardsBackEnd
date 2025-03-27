@@ -121,7 +121,7 @@ function anime(anime)
 }
 
 function definirLinhaAnime(id){
-    animes = metodos.get.allAnimes();
+    animes = get.allAnimes();
 
     for (let index = 0; index < animes.length; index++) 
     {
