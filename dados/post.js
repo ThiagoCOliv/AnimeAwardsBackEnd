@@ -1,5 +1,6 @@
 const Indicado = require("../model/Indicado");
 const { categories, animeById, lastId, category } = require('./get');
+const { atualizarAnimes } = require('./put');
 const { filePath, XLSX, workbook } = require('./excel_db');
 const { definirCelula } = require('./utils/funcoes')
 
@@ -86,6 +87,7 @@ function indicado(anime, categoria, personagem, numero)
 
         atualizarNumeroLinhas(planilha, linha);
         XLSX.writeFile(workbook, filePath);
+        atualizarAnimes();
     } 
     catch (error) 
     {
