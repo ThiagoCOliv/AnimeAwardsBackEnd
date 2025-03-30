@@ -56,16 +56,16 @@ function indicado(anime, categoria, personagem, numero)
                     {
                         planilha[definirCelula(linha, coluna + 4)] = { v: anime.id, t: "n" };
                         planilha[definirCelula(linha, coluna + 5)] = { v: definirPontuacao(categoria.indicados), t: "n" };
-                        planilha[definirCelula(linha, coluna + 1)] = { v: personagem.casal };
-                        planilha[definirCelula(linha, coluna + 2)] = { v: personagem.imagemA };
-                        planilha[definirCelula(linha, coluna + 3)] = { v: personagem.imagemB };
+                        planilha[definirCelula(linha, coluna + 1)] = { v: personagem.casal, t: "s" };
+                        planilha[definirCelula(linha, coluna + 2)] = { v: personagem.imagemA, t: "s" };
+                        planilha[definirCelula(linha, coluna + 3)] = { v: personagem.imagemB, t: "s" };
                     }
                     else
                     {
                         planilha[definirCelula(linha, coluna + 3)] = { v: anime.id, t: "n" };
                         planilha[definirCelula(linha, coluna + 4)] = { v: definirPontuacao(categoria.indicados), t: "n" };
-                        planilha[definirCelula(linha, coluna + 1)] = { v: personagem.nome };
-                        planilha[definirCelula(linha, coluna + 2)] = { v: personagem.imagem }
+                        planilha[definirCelula(linha, coluna + 1)] = { v: personagem.nome, t: "s" };
+                        planilha[definirCelula(linha, coluna + 2)] = { v: personagem.imagem, t: "s" };
                     }
                 }
                 else
@@ -87,7 +87,6 @@ function indicado(anime, categoria, personagem, numero)
 
         atualizarNumeroLinhas(planilha, linha);
         XLSX.writeFile(workbook, filePath);
-        atualizarAnimes();
     } 
     catch (error) 
     {
@@ -95,7 +94,7 @@ function indicado(anime, categoria, personagem, numero)
         return false
     }
 
-    return true
+    return true;
 }
 
 function anime(anime)
@@ -167,7 +166,6 @@ function criarCategoriaGenero(genero)
     try 
     {
         const planilha = workbook.Sheets[`Categorias Generos`];
-        const dados = XLSX.utils.sheet_to_json(planilha, { header: 1 });
         const generos = categories(`Generos`).length;
         atualizarNumeroLinhas(planilha, 2);
         atualizarNumeroColunas(planilha, (generos * 4) + 3);

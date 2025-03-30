@@ -47,11 +47,11 @@ function categories(tipoCategoria)
         {
             for(let linha = 2; linha < dados.length; linha++)
             {
-                if(dados[linha][coluna + 1])
+                if(dados[linha][coluna])
                 {
                     let animeIndicado = animeById(dados[linha][coluna + 1]);
                     let indicado = new Indicado(animeIndicado, dados[linha][coluna + 2], null, null);
-
+                    
                     if(tipoCategoria == "Personagens")
                     {
                         if(dado == "Melhor Casal")
@@ -113,9 +113,8 @@ function allCategories(){
 
 function topAnimes(){
     const animesOrdemPontuacao = animes.length == 0 ? allAnimes().sort((a, b) => b.pontos - a.pontos) : animes.sort((a, b) => b.pontos - a.pontos);
-    const topAnimes = animesOrdemPontuacao.slice(0, 10);
 
-    return topAnimes;
+    return animesOrdemPontuacao.slice(0, 10);
 }
 
 function animeByCategory(categoria){
