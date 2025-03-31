@@ -39,7 +39,7 @@ function categories(tipoCategoria)
     const dados = XLSX.utils.sheet_to_json(planilha, { header: 1 })
 
     let categoriasLista = []
-
+    
     if(dados.length > 0) Array.from(dados[0]).forEach((dado, coluna) => {
         let indicados = [];
         
@@ -112,9 +112,7 @@ function allCategories(){
 }
 
 function topAnimes(){
-    const animesOrdemPontuacao = animes.length == 0 ? allAnimes().sort((a, b) => b.pontos - a.pontos) : animes.sort((a, b) => b.pontos - a.pontos);
-
-    return animesOrdemPontuacao.slice(0, 10);
+    return allAnimes().sort((a, b) => b.pontos - a.pontos).slice(0, 10);
 }
 
 function animeByCategory(categoria){
