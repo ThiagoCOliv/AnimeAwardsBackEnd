@@ -50,7 +50,7 @@ router.post('/indicado', (req, res) => {
     if(indicacaoAdicionada)
     {
         dados.put.atualizarAnimes();
-        res.status(201).send({mensagem: "Indicado adicionado com sucesso!"})
+        res.status(201).send({mensagem: "Indicado adicionado com sucesso!", categoria: dados.get.category(categoria.nome)})
     }
     else
     {
@@ -59,7 +59,7 @@ router.post('/indicado', (req, res) => {
 })
 
 router.put('/categoria', (req, res) => {
-    const categoriaFoiAtualizada = dados.put.category(req.body)
+    const categoriaFoiAtualizada = dados.put.category(req.body);
     categoriaFoiAtualizada ? res.status(201).send({mensagem: "Categoria atualizada com sucesso!"}) : res.status(501).send({mensagem: "Erro na atualização da categoria!"})
 })
 
