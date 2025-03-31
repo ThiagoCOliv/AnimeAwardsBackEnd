@@ -13,24 +13,24 @@ function category(categoria)
         {
             for(let linha = 2; linha < categoria.indicados.length + 2; linha++)
             {
-                planilha[definirCelula(linha, coluna)] = { v: linha - 1 };
+                planilha[definirCelula(linha, coluna)] = { v: linha - 1, t: "n" };
 
                 if(categoria.tipo == "Personagens")
                 {
                     if(dado == "Melhor Casal")
                     {
-                        planilha[definirCelula(linha, coluna + 4)] = { v: categoria.indicados[linha - 2].anime.id };
+                        planilha[definirCelula(linha, coluna + 4)] = { v: categoria.indicados[linha - 2].anime.id, t: "n" };
                         planilha[definirCelula(linha, coluna + 5)] = { v: categoria.indicados[linha - 2].pontos, t: "n" };
-                        planilha[definirCelula(linha, coluna + 1)] = { v: categoria.indicados[linha - 2].casal };
-                        planilha[definirCelula(linha, coluna + 2)] = { v: categoria.indicados[linha - 2].imagemA };
-                        planilha[definirCelula(linha, coluna + 3)] = { v: categoria.indicados[linha - 2].imagemB };
+                        planilha[definirCelula(linha, coluna + 1)] = { v: categoria.indicados[linha - 2].casal, t: "s" };
+                        planilha[definirCelula(linha, coluna + 2)] = { v: categoria.indicados[linha - 2].imagemA, t: "s" };
+                        planilha[definirCelula(linha, coluna + 3)] = { v: categoria.indicados[linha - 2].imagemB, t: "s" };
                     }
                     else
                     {
-                        planilha[definirCelula(linha, coluna + 3)] = { v: categoria.indicados[linha - 2].anime.id };
+                        planilha[definirCelula(linha, coluna + 3)] = { v: categoria.indicados[linha - 2].anime.id, t: "n" };
                         planilha[definirCelula(linha, coluna + 4)] = { v: categoria.indicados[linha - 2].pontos, t: "n" };
-                        planilha[definirCelula(linha, coluna + 1)] = { v: categoria.indicados[linha - 2].personagem };
-                        planilha[definirCelula(linha, coluna + 2)] = { v: categoria.indicados[linha - 2].imagem }
+                        planilha[definirCelula(linha, coluna + 1)] = { v: categoria.indicados[linha - 2].personagem, t: "s" };
+                        planilha[definirCelula(linha, coluna + 2)] = { v: categoria.indicados[linha - 2].imagem, t: "s" }
                     }
                 }
                 else
@@ -41,7 +41,7 @@ function category(categoria)
                 if(categoria.tipo == "Subjetivas" && (dado == "Melhor Encerramento" || dado == "Melhor Abertura"))
                 {
                     planilha[definirCelula(linha, coluna + 3)] = { v: categoria.indicados[linha - 2].pontos, t: "n" };
-                    planilha[definirCelula(linha, coluna + 2)] = { v: categoria.indicados[linha - 2].numero };
+                    planilha[definirCelula(linha, coluna + 2)] = { v: categoria.indicados[linha - 2].numero, t: "n" };
                 }
                 else if(categoria.tipo != "Personagens")
                 {
@@ -139,28 +139,33 @@ function atualizarAnimes()
     categorias = get.allCategories();
     animes = get.allAnimes();
 
-    animes.forEach((anime, linha) => {
-        indicacoesAnime = [];
-
-        categorias.forEach(categoria => {
-            categoria.indicados.forEach(indicado => {
-                if(indicado.anime.id == anime.id)
-                {
-                    indicacoesAnime.push(indicado)
-                }
+    if(animes.length > 0)
+    {
+        animes.forEach((anime, linha) => {
+            indicacoesAnime = [];
+    
+            categorias.forEach(categoria => {
+                categoria.indicados.forEach(indicado => {
+                    if(indicado.anime.id == anime.id)
+                    {
+                        indicacoesAnime.push(indicado)
+                    }
+                })
             })
+            
+            pontuacaoAnime = indicacoesAnime.reduce((total, atual) => total + atual.pontos, 0)
+    
+            const planilha = workbook.Sheets[`Animes`];
+            const celula = 'I' + (linha + 2)
+            planilha[celula] = { v: pontuacaoAnime, t: "n" };
         })
-        
-        pontuacaoAnime = indicacoesAnime.reduce((total, atual) => total + atual.pontos, 0)
+    
+        XLSX.writeFile(workbook, filePath)
+    
+        return true;
+    }
 
-        const planilha = workbook.Sheets[`Animes`];
-        const celula = 'I' + (linha + 2)
-        planilha[celula].v = pontuacaoAnime;
-    })
-
-    XLSX.writeFile(workbook, filePath)
-
-    return true;
+    return false;
 }
 
 module.exports = { category, anime, atualizarAnimes }
